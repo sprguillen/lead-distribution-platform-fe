@@ -2,7 +2,17 @@ import 'server-only';
 
 import { getSessionToken } from './session';
 
-const API_URL = process.env.API_URL ?? 'http://127.0.0.1:4000';
+function apiUrl() {
+  const url = process.env.API_URL;
+
+  if (!url) {
+    throw new Error(
+      'API_URL is not set.',
+    );
+  }
+
+  return url.replace(/\/$/, '');
+}
 
 export class ApiError extends Error {
   readonly status: number;
@@ -35,7 +45,7 @@ export async function api<T>(
 
   const token = anonymous ? null : await getSessionToken();
 
-  const response = await fetch(`${API_URL}${path}`, {
+  const response = await fetch(`${apiUrl()}${path}`, {
     method,
     headers: {
       ...(body === undefined ? {} : { 'content-type': 'application/json' }),

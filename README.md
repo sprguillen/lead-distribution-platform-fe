@@ -75,9 +75,17 @@ Install all dependencies including dev dependencies — `next build` needs them.
 cp .env.example .env.local
 ```
 
-| Variable  | Required | Description                                                                                       |
-| --------- | -------- | ------------------------------------------------------------------------------------------------- |
-| `API_URL` | no       | Internal address of the backend, default `http://127.0.0.1:4000`. Point it at the assigned backend port. |
+| Variable  | Required | Description                                                                                      |
+| --------- | -------- | ------------------------------------------------------------------------------------------------ |
+| `API_URL` | **yes**  | Internal address of the backend, e.g. `http://127.0.0.1:4000`. Point it at the assigned backend port. |
+
+There is no default. If it is unset the first admin request fails with a named
+error in the logs, rather than silently dialling the wrong port and returning
+empty pages.
+
+The value is read server-side at request time, not baked into the build. So you
+can build before the backend exists, and changing the port needs only
+`pm2 restart lead-frontend --update-env` — no rebuild.
 
 `API_URL` is deliberately **not** prefixed with `NEXT_PUBLIC_`, so it is never
 inlined into the browser bundle. Nothing in this app should be public — the
