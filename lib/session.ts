@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 
 export const SESSION_COOKIE = 'admin_session';
 
@@ -16,13 +16,20 @@ export async function getSessionToken() {
 export async function setSessionToken(token: string) {
   const store = await cookies();
 
+  // Mark the cookie Secure only when the request actually arrived over HTTPS,
+  // rather than whenever NODE_ENV is production. 
+  const forwardedProto = (await headers())
+    .get('x-forwarded-proto')
+    ?.split(',')[0]
+    ?.trim();
+
   // httpOnly keeps the JWT out of client-side JavaScript entirely: the browser
   // attaches it to Next.js requests, and only the server ever forwards it to
   // the API. Nothing in the bundle can read it.
   store.set(SESSION_COOKIE, token, {
     httpOnly: true,
     sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
+    secure: forwardedProto === 'https',
     path: '/',
     maxAge: SESSION_MAX_AGE,
   });
